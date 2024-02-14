@@ -25,13 +25,22 @@ const options = {
 
 flatpickr('#datetime-picker', options);
 
-document.querySelector('[data-start]').addEventListener('click', () => {
-  const userSelectedDate = flatpickr.parseDate(
-    document.querySelector('#datetime-picker').value
+// Оголошення змінних для елементів інтерфейсу таймера
+const daysEl = document.querySelector('.timer .value[data-days]');
+const hoursEl = document.querySelector('.timer .value[data-hours]');
+const minutesEl = document.querySelector('.timer .value[data-minutes]');
+const secondsEl = document.querySelector('.timer .value[data-seconds]');
+
+// Збереження посилання на кнопку "Start" у змінній
+const startBtn = document.querySelector('[data-start]');
+
+startBtn.addEventListener('click', () => {
+  const selectedDate = flatpickr.parseDate(
+    document.getElementById('datetime-picker').value,
+    'Y-m-d H:i'
   );
   const currentDate = new Date();
-
-  if (userSelectedDate <= currentDate) {
+  if (selectedDate <= currentDate) {
     iziToast.error({
       title: 'Error',
       message: 'Please choose a date in the future',
@@ -39,29 +48,29 @@ document.querySelector('[data-start]').addEventListener('click', () => {
     return;
   }
 
-  document.querySelector('[data-start]').disabled = true;
-  document.querySelector('#datetime-picker').disabled = true;
+  startBtn.disabled = true;
+  document.getElementById('datetime-picker').disabled = true;
 
-  const intervalId = setInterval(() => {
-    const timeLeft = userSelectedDate - new Date();
-    if (timeLeft <= 0) {
-      clearInterval(intervalId);
-      document.querySelector('.timer .value[data-days]').textContent = '00';
-      document.querySelector('.timer .value[data-hours]').textContent = '00';
-      document.querySelector('.timer .value[data-minutes]').textContent = '00';
-      document.querySelector('.timer .value[data-seconds]').textContent = '00';
-      return;
+  const difference = selectedDate.getTime() - currentDate.getTime();
+
+  countdownInterval = setInterval(() => {
+    const { days, hours, minutes, seconds } = convertMs(difference);
+    daysEl.textContent = addLeadingZero(days);
+    hoursEl.textContent = addLeadingZero(hours);
+    minutesEl.textContent = addLeadingZero(minutes);
+    secondsEl.textContent = addLeadingZero(seconds);
+
+    difference -= 1000;
+
+    if (difference < 0) {
+      clearInterval(countdownInterval);
+      iziToast.success({
+        title: 'Countdown Finished',
+        message: 'The countdown has ended.',
+      });
+      startBtn.disabled = false;
+      document.getElementById('datetime-picker').disabled = false;
     }
-
-    const { days, hours, minutes, seconds } = convertMs(timeLeft);
-    document.querySelector('.timer .value[data-days]').textContent =
-      addLeadingZero(days);
-    document.querySelector('.timer .value[data-hours]').textContent =
-      addLeadingZero(hours);
-    document.querySelector('.timer .value[data-minutes]').textContent =
-      addLeadingZero(minutes);
-    document.querySelector('.timer .value[data-seconds]').textContent =
-      addLeadingZero(seconds);
   }, 1000);
 });
 
@@ -79,6 +88,7 @@ function convertMs(ms) {
   return { days, hours, minutes, seconds };
 }
 
+// Вдосконалення функції addLeadingZero
 function addLeadingZero(value) {
-  return value < 10 ? '0' + value : value;
+  return String(value).padStart(2, '0');
 }

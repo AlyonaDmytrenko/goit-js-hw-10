@@ -25,16 +25,16 @@ const options = {
 
 flatpickr('#datetime-picker', options);
 
-// Оголошення змінних для елементів інтерфейсу таймера
 const daysEl = document.querySelector('.timer .value[data-days]');
 const hoursEl = document.querySelector('.timer .value[data-hours]');
 const minutesEl = document.querySelector('.timer .value[data-minutes]');
 const secondsEl = document.querySelector('.timer .value[data-seconds]');
 
-// Збереження посилання на кнопку "Start" у змінній
 const startBtn = document.querySelector('[data-start]');
 
-startBtn.addEventListener('click', () => {
+startBtn.addEventListener('click', startCountdown);
+
+function startCountdown() {
   const selectedDate = flatpickr.parseDate(
     document.getElementById('datetime-picker').value,
     'Y-m-d H:i'
@@ -51,9 +51,9 @@ startBtn.addEventListener('click', () => {
   startBtn.disabled = true;
   document.getElementById('datetime-picker').disabled = true;
 
-  const difference = selectedDate.getTime() - currentDate.getTime();
+  let difference = selectedDate.getTime() - currentDate.getTime();
 
-  countdownInterval = setInterval(() => {
+  const countdownInterval = setInterval(() => {
     const { days, hours, minutes, seconds } = convertMs(difference);
     daysEl.textContent = addLeadingZero(days);
     hoursEl.textContent = addLeadingZero(hours);
@@ -72,7 +72,7 @@ startBtn.addEventListener('click', () => {
       document.getElementById('datetime-picker').disabled = false;
     }
   }, 1000);
-});
+}
 
 function convertMs(ms) {
   const second = 1000;
@@ -88,7 +88,6 @@ function convertMs(ms) {
   return { days, hours, minutes, seconds };
 }
 
-// Вдосконалення функції addLeadingZero
 function addLeadingZero(value) {
   return String(value).padStart(2, '0');
 }
